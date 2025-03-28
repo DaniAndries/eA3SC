@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+{% block title %}
+  Inicio - eA3SC
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Información del Sistema</h1> <hr>
+  <ul>
+    <li>
+      <strong>Versión:</strong> {{ VERSION }}
+    </li>
+    <li>
+      <strong>Plataforma:</strong> {{ PLATFORM }}
+    </li>
+    <li>
+      <strong>Directorio de Instalación:</strong> {{ PATH }}
+    </li>
+    <li>
+      <strong>Archivo de configuración:</strong> {{ CONFIG_PATH }}
+    </li>
+    <li>
+      <strong>Archivo de Logs:</strong> {{ LOGS }}
+    </li>
+  </ul>
+</div>
+{% endblock %}
+{% block extra_js %}
+
+{% endblock %}

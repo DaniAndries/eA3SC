@@ -1,0 +1,219 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control,
+.form-check-label,
+.btn {
+    margin-bottom: 10px;
+    line-height: 1.5 !important;
+}
+
+
+fieldset {
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #e64e20 !important;
+}
+
+.navbar {
+    border: 5px black;
+    height: auto; /* Permite que crezca si es necesario */
+    background-color: #e64e20 !important;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    color: white !important;
+    font-weight: bold;
+    font-size: 1.30rem;
+    margin: 0px 20px 11px 0px;
+}
+
+.navbar-nav .nav-link {
+    color: white !important;
+    margin-right: 20px;
+    font-weight: 500;
+    padding: 8px 15px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #f8f9fa !important;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+}
+
+.navbar-toggler {
+    border: none;
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+}
+
+.navbar-toggler-icon {
+    filter: invert(1);
+}
+
+
+.nav-item .disabled {
+    color: rgba(255, 255, 255, 0.6) !important;
+    cursor: not-allowed;
+}
+
+.title {
+    max-width: 1200px;
+    margin: auto;
+    border-radius: 10px;
+}
+
+.container {
+    max-width: 90%;
+    min-width: 345px;
+    min-height: 400px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1300px) {
+    .row {
+        flex-direction: column; /* Apila los elementos en una columna */
+        align-items: center; /* Centra los elementos */
+    }
+    
+    .row.g-2 {
+        align-items: flex-start !important; /* Alinea los elementos arriba */
+    }
+
+    .col-md-3 {
+        width: 100% !important; /* Ocupa todo el ancho */
+        max-width: 100%;
+    }
+
+    .col-4 {
+        width: 100% !important; /* Ocupa todo el ancho */
+        max-width: 100%;
+    }
+}
+
+.row {
+    justify-content: center; /* Mantener el centrado */
+    max-width: 100%;
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se ajusten en varias líneas */
+    justify-content: center; /* Centra los elementos */
+}
+
+h1,
+h2,
+h3 {
+    color: #333;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.btn {
+    background-color: #e64e20;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #b43b16;
+    color: white;
+}
+
+a {
+    color: #e64e20;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #b43b16;
+}
+
+/* Estilo básico para los botones de radio */
+input[type="radio"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e64e20;
+    border-radius: 50%;
+    outline: none;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Estilo cuando el radio está seleccionado */
+input[type="radio"]:checked {
+    background-color: #e64e20;
+    border-color: #e64e20;
+}
+
+/* Estilo para el círculo interior cuando está seleccionado */
+input[type="radio"]:checked::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: white;
+}
+
+/* Estilo cuando el radio está en hover */
+input[type="radio"]:hover {
+    border-color: #c14a17;
+}
+
+main {
+    flex: 1;  /* Ocupa todo el espacio disponible */
+}
+
+footer {
+    background-color: #e64e20;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+}
