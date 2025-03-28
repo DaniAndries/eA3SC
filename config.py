@@ -26,7 +26,7 @@ CONFIG_PARSER.read(SETTINGS_PATH)
 
 def update_dict():
     return {
-    "NOTIFICATION": CONFIG_PARSER['SERVICE_NOTIFICATION']['POPUP_TEXT'],
+    "NOTIFICATION": CONFIG_PARSER['MAIL']['NOTIFICATION'],
     "EMAIL": CONFIG_PARSER['MAIL']['EMAIL'],
     "PASSWORD": CONFIG_PARSER['MAIL']['PASSWORD'],
     "PORT": CONFIG_PARSER['MAIL']['PORT'],
@@ -42,7 +42,7 @@ def update_dict():
     "DATABASE_DB": CONFIG_PARSER['BD']['DATABASE_DB'],
     }
 
-DICT = update_dict()
+DICT = {}
 
 # # ---------------------------------------------------------------------------------
 # #---------------------------[SERVICE_NOTIFICATION]

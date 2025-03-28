@@ -34,7 +34,6 @@ app.register_blueprint(routes.app_blueprint)
 
 # Iniciar la función de configuración de impresoras
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    D.info("------------------------------------------Iniciando programa------------------------------------------")
     printers_config()
     # Inicia un hilo para el popup
     popup_thread = threading.Thread(target=popup, daemon=True)

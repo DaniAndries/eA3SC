@@ -1,8 +1,11 @@
 import json
+import os
 import requests
 from flask import Blueprint, render_template, request, jsonify
 import config
 import logger as D
+import win32api
+import win32print
 
 # Crear un Blueprint para las rutas
 app_blueprint = Blueprint("app_blueprint", __name__)
@@ -150,15 +153,7 @@ def get_printers():
         # Abre el archivo de configuración y lee las impresoras
         with open(config.CONFIG_PATH, "r") as archive:
             printers_info = json.load(archive)  # Carga la lista de impresoras del archivo de configuración
-
-        # Obtener la impresora configurada desde el archivo de configuración
-        configured_printer = config.CONFIG_PARSER['PRINT_SETTINGS']['PRINT_SC']
-
-        # Asegurarse de que la impresora configurada esté al principio de la lista, sin duplicarla si ya está
-        if configured_printer and configured_printer not in printers_info:
-            printers_info.remove({"name": configured_printer})  # Eliminar la impresora configurada de la lista
-            printers_info.insert(0, {"name": configured_printer})  # Añadir la impresora configurada al principio de la lista
-
+        
         # Devuelve la lista de impresoras en formato JSON
         if not printers_info:
             raise ValueError("No se encontraron impresoras en la configuración.")
@@ -166,4 +161,58 @@ def get_printers():
         return jsonify(printers_info)
     except Exception as e:
         D.error(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app_blueprint.route("/printers/<printer_id>", methods=["POST"])
+def print_document(printer_id):
+    try:
+        hprinter = win32print.OpenPrinter(printer_id)
+
+        # Obtiene el archivo y el numero de copias desde la solicitud
+        file = request.files["file"]
+        copies = int(
+            request.form.get("copies", 1)
+        )  # Valor predeterminado de 1 copia si no se especifica
+
+        # Guarda el archivo en la carpeta temporal
+        temp_folder = os.path.join(os.getcwd(), "temp")
+        os.makedirs(temp_folder, exist_ok=True)
+        file_path = os.path.join(temp_folder, file.filename)
+        file.save(file_path)
+
+        # Verifica que el archivo se haya guardado correctamente
+        if not os.path.exists(file_path):
+            return jsonify({"error": "Archivo no encontrado"}), 400
+
+        # Determina la extension del archivo para procesarlo adecuadamente
+        file_extension = file.filename.rsplit(".", 1)[-1].lower()
+
+        with open(file_path, "rb") as f:
+            data = f.read()
+            # Imprime el archivo la cantidad de veces indicada
+            for _ in range(copies):
+                try:
+                    # Empieza un trabajo de impresion con el nombre del archivo
+                    job_info = (
+                        file.filename,
+                        None,
+                        "RAW",
+                    )  # Usa el nombre real del archivo
+                    win32print.StartDocPrinter(hprinter, 1, job_info)
+
+                    try:
+                        win32print.StartPagePrinter(hprinter)
+                        win32print.WritePrinter(
+                            hprinter, data
+                        )  # Envia los datos a la impresora
+
+                        win32print.EndPagePrinter(hprinter)
+                    finally:
+                        win32print.EndDocPrinter(hprinter)
+                except Exception as e:
+                    print(f"Error al imprimir: {e}")
+
+        return jsonify({"message": "Documento enviado a imprimir"}), 200
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500

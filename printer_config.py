@@ -3,47 +3,137 @@ import getpass
 import json
 import os
 import win32print
+import win32ui
 import config
 import logger as D
 
 def config_archive():
-    """Verifica la existencia del archivo de configuración y su contenido."""
+    # Verifica si el archivo de configuracion existe y si esta vacio
     if os.path.exists(config.CONFIG_PATH):
         with open(config.CONFIG_PATH, "r") as archive:
             if os.stat(config.CONFIG_PATH).st_size == 0:
-                D.warning(f"El archivo {config.CONFIG_PATH} está vacío. Inicializando configuración vacía.")
+                D.warning(
+                    f"El archivo {config.CONFIG_PATH} está vacío. Inicializando configuración vacía."
+                )
+                return []
             else:
-                D.info(f"El archivo {config.CONFIG_PATH} ya existe. Verificando nuevas impresoras.")
+                printers_info = json.load(archive)
+                D.info(
+                    f"El archivo {config.CONFIG_PATH} ya existe. Verificando nuevas impresoras."
+                )
+            return printers_info
     else:
-        D.info(f"Archivo {config.CONFIG_PATH} no existe. Creando archivo de configuración.")
+        D.info(
+            f"Archivo {config.CONFIG_PATH} no existe. Creando archivo de configuración."
+        )
+        return []
 
-def printers_config():    
-    config_archive()
+# Funcion que configura las impresoras (crea el archivo si no existe)
+def printers_config():
+    printers_info = config_archive()
 
-    # Obtiene la lista de impresoras en el formato requerido
-    printer_names = [{"name": printer[2]} for printer in win32print.EnumPrinters(2)]
+    # Obtiene las impresoras del sistema
+    printer_names = [printer[2] for printer in win32print.EnumPrinters(2)]
 
-    # Cargar impresoras existentes si el archivo tiene datos
-    if os.path.exists(config.CONFIG_PATH) and os.stat(config.CONFIG_PATH).st_size > 0:
-        with open(config.CONFIG_PATH, "r") as archive:
-            try:
-                existing_printers = {tuple(d.items()) for d in json.load(archive)}
-            except json.JSONDecodeError:
-                existing_printers = set()
-    else:
-        existing_printers = set()
+    # Recorre las impresoras y añade las nuevas
+    existing_printers = {printer["name"] for printer in printers_info}
+    for printer in printer_names:
+        if printer not in existing_printers:
+            printer_config = get_printer_config(printer)
+            printers_info.append(printer_config)
+            D.info(
+                f"Impresora nueva encontrada: {printer}. Se añadió al archivo de configuración."
+            )
 
-    current_printers = {tuple(d.items()) for d in printer_names}
+    # Repara campos faltantes (incluyendo el DPI, solo si es necesario)
+    for printer in printers_info:
+        # Actualiza el DPI solo si falta en la configuracion
+        get_printer_dpi(printer)
+        # Repara otros campos faltantes
+        fix_missing_fields(printer)
 
-    if new_printers := current_printers - existing_printers:
-        D.info("Nuevas impresoras encontradas.")
-
-    updated_printers = [dict(p) for p in existing_printers | current_printers]
-
-    # Guardar solo los nombres de las impresoras en el formato deseado
+    # Guarda la configuracion (creada o actualizada)
     with open(config.CONFIG_PATH, "w") as archive:
-        json.dump(updated_printers, archive, indent=4)
-        D.info(f"Archivo de configuración {config.CONFIG_PATH} actualizado con nombres de impresoras.")
+        json.dump(printers_info, archive, indent=4)
+        D.info(f"Archivo de configuración {config.CONFIG_PATH} actualizado.")
+        config.DICT = config.update_dict()
+
+# Funcion para obtener la configuracion inicial de la impresora
+def get_printer_config(printer):
+    try:
+        attributes = get_printer_attributes(printer)
+        return {
+            "name": printer,
+            "duplex": attributes["duplex"],
+            "copies": 1,
+            "sides": 1,
+            "dpi": attributes["dpi"],
+            "max_dpi": attributes["dpi"],
+        }
+    except Exception as e:
+        D.error(f"Error al obtener información de la impresora {printer}: {str(e)}")
+        return {
+            "name": printer,
+            "duplex": False,
+            "copies": 1,
+            "sides": 1,
+            "dpi": attributes["dpi"],
+            "max_dpi": attributes["dpi"],
+        }
+
+# Funcion para verificar y reparar campos faltantes en la configuracion
+def fix_missing_fields(printer_config):
+    # Si falta el campo 'duplex', lo actualiza usando get_printer_attributes
+    if "duplex" not in printer_config:
+        attributes = get_printer_attributes(printer_config["name"])
+        printer_config["duplex"] = attributes["duplex"]
+    # Si faltan 'copies' o 'sides', se asigna el valor por defecto 1
+    if "copies" not in printer_config:
+        printer_config["copies"] = 1
+    if "sides" not in printer_config:
+        printer_config["sides"] = 1
+    # El DPI ya se actualiza con get_printer_dpi si falta
+    return printer_config
+
+
+# Funcion para obtener los atributos basicos de la impresora: DPI y duplex.
+def get_printer_attributes(printer):
+    try:
+        dpi = get_printer_dpi({"name": printer})
+
+        printer_handle = win32print.OpenPrinter(printer)
+        printer_info = win32print.GetPrinter(printer_handle, 2)
+        dev_mode = printer_info.get("pDevMode", None)
+        duplex = (
+            dev_mode.Duplex > 1 if dev_mode and hasattr(dev_mode, "Duplex") else False
+        )
+        win32print.ClosePrinter(printer_handle)
+
+        return {"dpi": dpi, "duplex": duplex}
+    except Exception as e:
+        D.error(f"Error al obtener atributos de la impresora {printer}: {str(e)}")
+        return {"dpi": 200, "duplex": False}
+
+
+# Funcion que obtiene el DPI, pero solo se ejecuta si el campo "dpi" no esta definido o es falsy.
+def get_printer_dpi(printer_config):  # sourcery skip: extract-method
+    if not printer_config.get("dpi"):
+        try:
+            hDC = win32ui.CreateDC()
+            hDC.CreatePrinterDC(printer_config["name"])
+            horizontal_dpi = hDC.GetDeviceCaps(88)
+            vertical_dpi = hDC.GetDeviceCaps(90)
+            dpi = (
+                horizontal_dpi
+                if horizontal_dpi == vertical_dpi
+                else min(horizontal_dpi, vertical_dpi)
+            )
+            printer_config["dpi"] = dpi
+            D.info(f"DPI obtenido para {printer_config['name']}: {dpi}")
+        except Exception as e:
+            D.error(f"Error al obtener DPI para {printer_config['name']}: {str(e)}")
+            printer_config["dpi"] = 200  # Valor por defecto en caso de error
+    return printer_config["dpi"]
 
 # Configuración predeterminada
 DEFAULT_CONFIG = {
@@ -89,15 +179,16 @@ DEFAULT_CONFIG = {
 SETTINGS_PATH = f"C:/Users/{getpass.getuser()}/AppData/Local/eA3SC"
 SETTINGS_FILE = f"{SETTINGS_PATH}/settings.ini"
 def create_config_file():
-    os.mkdir(SETTINGS_PATH)
+    if not os.path.isdir(SETTINGS_PATH):
+        os.mkdir(SETTINGS_PATH)
     config = configparser.ConfigParser()
-    
+
     for section, values in DEFAULT_CONFIG.items():
         config[section] = values
 
     with open(SETTINGS_FILE, "w") as configfile:
         config.write(configfile)
-    print(f"{SETTINGS_FILE} ha sido creado correctamente.")
+    D.info(f"{SETTINGS_FILE} ha sido creado correctamente.")
 
 # Si el archivo no existe, lo creamos
 if not os.path.exists(SETTINGS_FILE):

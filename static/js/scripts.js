@@ -1,3 +1,76 @@
+// Funcion que maneja el envio del archivo al servidor
+function print_file(event) {
+  event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
+  const submitButton = document.querySelector('button[type="submit"]');
+  submitButton.textContent = "Enviando..."; // Cambia el texto del boton a "Enviando..."
+  submitButton.disabled = true; // Desactiva el boton para evitar envios multiples
+
+  let formData = new FormData();
+  // Agrega el numero de copias al formulario
+  formData.append("copies", document.getElementById("copiesNumber").value);
+
+  let fileInput = document.getElementById("formatField").files[0];
+  if (!fileInput) {
+    alert("Por favor, selecciona un archivo.");
+    resetSubmitButton(); // Restaura el boton si no hay archivo
+    return;
+  }
+  formData.append("file", fileInput);
+
+  const driverInput = document.querySelector('input[name="driver"]:checked');
+  if (driverInput) {
+    formData.append("driver", driverInput.value); // Agrega el modo de impresion seleccionado
+  } else {
+    alert("Por favor, selecciona un modo de impresión.");
+    resetSubmitButton(); // Restaura el boton si no se selecciona un modo
+    return;
+  }
+
+  let printerSelect = document.getElementById("printerSelect");
+  let printerId = printerSelect.value;
+  if (!printerId || printerSelect.options.length === 0) {
+    alert("Por favor, selecciona una impresora válida.");
+    resetSubmitButton(); // Restaura el boton si no se selecciona impresora
+    return;
+  }
+
+  // Realiza la peticion POST para enviar el archivo a la impresora
+  fetch(`/printers/${encodeURIComponent(printerId)}`, {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      return response.text().then((text) => {
+        if (!response.ok) {
+          try {
+            const data = JSON.parse(text);
+            throw new Error(
+              data.error || `Error en el servidor (${response.status})`
+            );
+          } catch {
+            throw new Error(`Error desconocido: ${text}`);
+          }
+        }
+        return JSON.parse(text);
+      });
+    })
+    .then((data) => {
+      alert(data.message || "Documento enviado correctamente");
+      document.getElementById("print").reset(); // Resetea el formulario despues de enviar
+      loadPrinters(); // Recarga la lista de impresoras
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert(
+        `Error: ${
+          error.message || "Problema al enviar el documento a imprimir"
+        }`
+      );
+    })
+    .finally(resetSubmitButton); // Restaura el boton al final
+}
+
 function saveSettings(event) {
   event.preventDefault();
   console.log("Guardando configuración...");
@@ -104,13 +177,17 @@ document.addEventListener("DOMContentLoaded", function () {
   form="";
   if (window.location.pathname.includes("config")) {
     form = document.getElementById("PropertiesForm");
+    if (form) {
+      form.addEventListener("submit", saveSettings);
+    } else {
+      console.error("No se encontró el formulario");
+    }
   } else if (window.location.pathname.includes("print")) {
-    form = document.getElementById("form-1");
-  }
-
-  if (form) {
-    form.addEventListener("submit", saveSettings);
-  } else {
-    console.error("No se encontró el formulario");
+    form = document.getElementById("print");
+    if (form) {
+      form.addEventListener("submit", print_file);
+    } else {
+      console.error("No se encontró el formulario");
+    }
   }
 });
