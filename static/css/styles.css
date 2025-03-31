@@ -29,17 +29,17 @@ body {
     line-height: 1.5 !important;
 }
 
+.form-check{
+    display: flex;
+}
 
 fieldset {
     margin-bottom: 20px;
 }
 
-.card-header {
-    background-color: #e64e20 !important;
-}
+
 
 .navbar {
-    border: 5px black;
     height: auto; /* Permite que crezca si es necesario */
     background-color: #e64e20 !important;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
@@ -89,14 +89,36 @@ fieldset {
     border-radius: 10px;
 }
 
+/* Contenedor principal */
 .container {
-    max-width: 90%;
-    min-width: 345px;
-    min-height: 400px;
+    max-width: 1200px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.box-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+}
+
+.box {
+    flex: 1;
+    min-width: 280px;
+    max-width: 400px;
     padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+    .container {
+        flex-direction: column; /* md:flex-col */
+    }
 }
 
 @media (max-width: 1300px) {
@@ -121,11 +143,15 @@ fieldset {
 }
 
 .row {
-    justify-content: center; /* Mantener el centrado */
-    max-width: 100%;
+    
+    padding-top: 0px;
+    margin: -10px 0px;
     display: flex;
-    flex-wrap: wrap; /* Permite que los elementos se ajusten en varias líneas */
-    justify-content: center; /* Centra los elementos */
+    justify-content: center;
+}
+
+.btn-group {
+    margin-inline: auto;
 }
 
 h1,
@@ -147,27 +173,20 @@ h2 {
 .btn {
     background-color: #e64e20;
     color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    transition: background-color 0.3s ease;
+    border-radius: 8px;
+    border: 0px;
+    padding: 12px 24px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
 }
 
 .btn:hover {
     background-color: #b43b16;
-    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-a {
-    color: #e64e20;
-    text-decoration: none;
-    font-weight: 500;
-}
 
-a:hover {
-    text-decoration: underline;
-    color: #b43b16;
-}
 
 /* Estilo básico para los botones de radio */
 input[type="radio"] {
@@ -215,5 +234,5 @@ footer {
     background-color: #e64e20;
     color: white;
     text-align: center;
-    padding: 10px 0;
+    padding: 10px;
 }

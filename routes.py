@@ -3,6 +3,7 @@ import os
 import requests
 from flask import Blueprint, render_template, request, jsonify
 import config
+from db_conn import connect_db
 import logger as D
 import win32api
 import win32print
@@ -39,7 +40,7 @@ def home():
         )
     except requests.exceptions.RequestException as e:
         D.error(f"Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"Error: Hubo un problema al cargar la página: ": str(e)}), 500
 
 # Ruta para obtener informacion sobre la plataforma
 @app_blueprint.route("/management/config")
@@ -57,15 +58,15 @@ def get_settings():
         )
     except requests.exceptions.RequestException as e:
         D.error(f"Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"Error: Hubo un problema al cargar la página: ": str(e)}), 500
 
 @app_blueprint.route("/management/config", methods=["POST"])
 def save_settings():
     try:
-        print(f"Content-Type recibido: {request.content_type}")
+        D.info(f"Content-Type recibido: {request.content_type}")
         data = request.get_json()
-
         # Obtener valores del JSON recibido
+        NOTIFY = str(data.get("NOTIFY"))
         NOTIFICATION = data.get("NOTIFICATION")
         EMAIL = data.get("EMAIL")
         PASSWORD = data.get("PASSWORD")
@@ -83,18 +84,19 @@ def save_settings():
 
         
         required_fields = [
-            NOTIFICATION, EMAIL, PASSWORD, PORT, HOST, TO, CC, SUBJECT,
+            NOTIFY, NOTIFICATION, EMAIL, PASSWORD, PORT, HOST, TO, CC, SUBJECT,
             PRINT_SC, TIME_SECONDS, USER_DB, PASSWORD_DB, SERVER, DATABASE_DB
         ]
 
         # Validar que todos los campos estén presentes
         if not all(required_fields):
-            return jsonify({"error": "Todos los campos deben ser completados."}), 400
+            return jsonify({"Error": "Todos los campos deben ser completados."}), 400
 
         # Actualizar o agregar valores a la sección MAIL
         if "MAIL" not in config.CONFIG_PARSER:
             config.CONFIG_PARSER["MAIL"] = {}
 
+        config.CONFIG_PARSER["MAIL"]["NOTIFY"] = NOTIFY
         config.CONFIG_PARSER["MAIL"]["NOTIFICATION"] = NOTIFICATION
         config.CONFIG_PARSER["MAIL"]["EMAIL"] = EMAIL
         config.CONFIG_PARSER["MAIL"]["PASSWORD"] = PASSWORD
@@ -126,11 +128,15 @@ def save_settings():
             config.CONFIG_PARSER.update()
             config.DICT = config.update_dict()
 
+        try:
+            connect_db()
+        except Exception as e:
+            return jsonify({"message": "Usuario o contraseña de la base de datos incorrectos", "Error": "Unauthorized","code": 401,}), 401
         return jsonify({"message": "Configuración guardada correctamente."}), 200
 
     except Exception as e:
         D.error(f"Error al guardar configuración: {str(e)}")
-        return jsonify({"error": f"Error: {str(e)}"}), 500
+        return jsonify({"Error": f"Error al guardar configuración: {str(e)}"}), 500
 
 # Ruta para cargar la pagina de impresion con las impresoras disponibles
 @app_blueprint.route("/management/print")
@@ -143,7 +149,7 @@ def printer():
         return render_template("print.html", printers=printers_info)
     except Exception as e:
         D.error(f"Error al obtener impresoras: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"Error al obtener impresoras:": str(e)}), 500
 
 # Ruta para obtener las impresoras disponibles en el sistema
 @app_blueprint.route("/printers", methods=["GET"])
@@ -161,7 +167,7 @@ def get_printers():
         return jsonify(printers_info)
     except Exception as e:
         D.error(f"Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"Error": str(e)}), 500
 
 @app_blueprint.route("/printers/<printer_id>", methods=["POST"])
 def print_document(printer_id):
@@ -182,7 +188,7 @@ def print_document(printer_id):
 
         # Verifica que el archivo se haya guardado correctamente
         if not os.path.exists(file_path):
-            return jsonify({"error": "Archivo no encontrado"}), 400
+            return jsonify({"Error": "Archivo no encontrado"}), 400
 
         # Determina la extension del archivo para procesarlo adecuadamente
         file_extension = file.filename.rsplit(".", 1)[-1].lower()
@@ -215,4 +221,4 @@ def print_document(printer_id):
         return jsonify({"message": "Documento enviado a imprimir"}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"Error: No se ha podidoo enviar el archivo a imprimir": str(e)}), 500

@@ -1,85 +1,114 @@
-{% extends 'index.html' %}
-
-{% block title %}
-Configuración - eA3SC
-{% endblock %}
-
-{% block content %}
-<h1 class="title mt-4 text-center">Propiedades</h1>
-<hr>
+{% extends 'index.html' %} {% block title %} Configuración - eA3SC {% endblock
+%} {% block content %}
+<h1 class="title mt-2 text-center">Propiedades</h1>
+<hr />
 <form id="PropertiesForm">
-  <div class="row">
-    <!-- Tarjeta de Impresoras -->
-    <div class="col-md-3 mx-2 mt-4">
-      <div class="container mt-4">
+  <div class="container">
+    <div class="box-container">
+      <!-- Tarjeta de Impresoras -->
+      <div class="box">
         <h4 class="card-title">Impresoras</h4>
-        <hr>
+        <hr />
         <ul class="list-unstyled">
           <li class="mb-2 row g-2 align-items-center">
             <div class="col-4"><strong>Impresión SC:</strong></div>
             <div class="col-8">
-              <select value="{{ config_dict['PRINT_SC'] }}" id="printerSelect" name="printer" class="form-select" required></select>
+              <select id="printerSelect" name="printer" class="form-select"
+                required>
+                <option value disabled selected>Seleccione una
+                  impresora</option>
+                {% for printer in available_printers %}
+                <option value="{{ printer }}" {% if printer == config_dict['PRINT_SC'] %}selected{% endif %}>{{ printer }}</option>
+                {% endfor %}
+              </select>
             </div>
           </li>
           <li class="mb-2 row g-2 align-items-center">
             <div class="col-4"><strong>Tiempo en segundos:</strong></div>
             <div class="col-8">
-              <input type="number" class="form-control" id="TIME_SECONDS" value="{{ config_dict['TIME_SECONDS'] }}" max="60" min="1">
+              <input
+                type="number"
+                class="form-control"
+                id="TIME_SECONDS"
+                value="{{ config_dict['TIME_SECONDS'] }}"
+                max="60"
+                min="1" />
             </div>
           </li>
         </ul>
       </div>
-    </div>
 
-    <!--<li class="mb-2 row g-2 align-items-center">
-      <div class="col-4"><strong>Notificar:</strong></div>
-      <div class="col-8">
-        <input type="checkbox" class="form-control" id="TIME_SECONDS" value="{{ config_dict['TIME_SECONDS'] }}" max="60" min="1">
-      </div>
-    </li>
-    <li class="mb-2 row g-2 align-items-center">
-      <div class="col-4"><strong>Notificación:</strong></div>
-      <div class="col-8">
-        <input type="text" class="form-control" id="TIME_SECONDS" value="{{ config_dict['NOTIFICATION'] }}" max="60" min="1">
-      </div>
-    </li>
-    <hr>-->
-
-    <!-- Tarjeta de Mail -->
-    <div class="col-md-3 mx-2 mt-4">
-      <div class="container mt-4">
+      <!-- Tarjeta de Mail -->
+      <div class="box">
         <h4 class="card-title">Mail</h4>
-        <hr>
+        <hr />
         <ul class="list-unstyled">
-          {% for key in ['NOTIFICATION', 'EMAIL', 'PASSWORD', 'PORT', 'HOST', 'TO', 'CC', 'SUBJECT'] %}
           <li class="mb-2 row g-2 align-items-center">
-            <div class="col-4"><strong>{{ key.replace('_', ' ').title() }}:</strong></div>
+            <div class="col-4 ">
+              <strong for="NOTIFY"> Notificar: </strong>
+            </div>
             <div class="col-8">
-              <input type="{% if 'PASSWORD' in key %}password{% else %}text{% endif %}" 
-                     class="form-control" 
-                     id="{{ key }}" 
-                     value="{{ config_dict[key] }}">
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="NOTIFY"
+                  name="notify"
+                  {% if config_dict['NOTIFY'] == 'True' %}checked{% endif %}
+                />
+              </div>
+            </div>
+          </li>
+          <li class="mb-2 row g-2 align-items-center">
+            <div class="col-4"><strong>Notificación:</strong></div>
+            <div class="col-8">
+              <input
+                type="text"
+                class="form-control"
+                id="NOTIFICATION"
+                value="{{ config_dict['NOTIFICATION'] }}"
+                max="60"
+                min="1" 
+                disabled
+                />
+            </div>
+          </li>
+
+          <hr />
+          {% for key in ['EMAIL', 'PASSWORD', 'PORT', 'HOST', 'TO', 'CC',
+          'SUBJECT'] %}
+          <li class="mb-2 row g-2 align-items-center">
+            <div class="col-4">
+              <strong>{{ key.replace('_', ' ').title() }}:</strong>
+            </div>
+            <div class="col-8">
+              <input
+                type="{% if 'PASSWORD' in key %}password{% else %}text{% endif %}"
+                class="form-control"
+                id="{{ key }}"
+                value="{{ config_dict[key] }}" />
             </div>
           </li>
           {% endfor %}
         </ul>
       </div>
-    </div>
 
-    <!-- Tarjeta de Base de Datos -->
-    <div class="col-md-3 mx-2 mt-4">
-      <div class="container mt-4">
+      <!-- Tarjeta de Base de Datos -->
+      <div class="box">
         <h4 class="card-title">Base de Datos</h4>
-        <hr>
+        <hr />
         <ul class="list-unstyled">
           {% for key in ['USER_DB', 'PASSWORD_DB', 'SERVER', 'DATABASE_DB'] %}
           <li class="mb-2 row g-2 align-items-center">
-            <div class="col-4"><strong>{{ key.replace('_', ' ').title() }}:</strong></div>
+            <div class="col-4">
+              <strong>{{ key.replace('_', ' ').title() }}:</strong>
+            </div>
             <div class="col-8">
-              <input type="{% if 'PASSWORD' in key %}password{% else %}text{% endif %}" 
-                     class="form-control" 
-                     id="{{ key }}" 
-                     value="{{ config_dict[key] }}">
+              <input
+                type="{% if 'PASSWORD' in key %}password{% else %}text{% endif %}"
+                class="form-control"
+                id="{{ key }}"
+                value="{{ config_dict[key] }}" />
             </div>
           </li>
           {% endfor %}
@@ -87,13 +116,13 @@ Configuración - eA3SC
       </div>
     </div>
   </div>
+
   <div class="text-center mt-4">
     <button type="submit" class="btn btn-primary mb-3">Guardar</button>
   </div>
 </form>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %} {% block extra_js %}
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 {% endblock %}

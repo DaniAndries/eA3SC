@@ -147,7 +147,7 @@ DEFAULT_CONFIG = {
         "option_3": "Exit",
     },
     "SERVICE_NOTIFICATION": {
-        "popup_title": "Servicio en ejecución.",
+        "popup_title": "Servicio funcionando correctamente",
         "popup_text": "Servicio funcionando correctamente.",
     },
     "MAIL_NOTIFICATION": {
@@ -155,6 +155,7 @@ DEFAULT_CONFIG = {
         "popup_text": "Se ha notificado correctamente a {TO}.",
     },
     "MAIL": {
+        "notify": "off",
         "notification": "Servicio funcionando correctamente.",
         "email": "ejemplo@ejemplo.co",
         "password": "ejemplo",

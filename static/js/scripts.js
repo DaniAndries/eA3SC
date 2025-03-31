@@ -75,6 +75,8 @@ function saveSettings(event) {
   event.preventDefault();
   console.log("Guardando configuración...");
   // Obtener los valores de los campos del formulario
+  console.log(document.getElementById("NOTIFY").checked);
+  const NOTIFY = document.getElementById("NOTIFY").checked;
   const NOTIFICATION = document.getElementById("NOTIFICATION").value;
   const EMAIL = document.getElementById("EMAIL").value;
   const PASSWORD = document.getElementById("PASSWORD").value;
@@ -99,7 +101,7 @@ function saveSettings(event) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      NOTIFICATION, EMAIL, PASSWORD, PORT, HOST, TO, CC, SUBJECT, PRINT_SC, TIME_SECONDS, USER_DB, PASSWORD_DB, SERVER, DATABASE_DB
+      NOTIFY, NOTIFICATION, EMAIL, PASSWORD, PORT, HOST, TO, CC, SUBJECT, PRINT_SC, TIME_SECONDS, USER_DB, PASSWORD_DB, SERVER, DATABASE_DB
     }),
   })
   .then((response) => response.json())
@@ -189,5 +191,17 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       console.error("No se encontró el formulario");
     }
+  }
+});
+
+const notifyCheckbox = document.getElementById("NOTIFY");
+const notificationInput = document.getElementById("NOTIFICATION");
+function toggleNotificationInput() {
+  notificationInput.disabled = !notifyCheckbox.checked;
+}
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.location.pathname.includes("config")) {
+    toggleNotificationInput();
+    notifyCheckbox.addEventListener("change", toggleNotificationInput);
   }
 });
