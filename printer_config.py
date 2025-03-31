@@ -141,7 +141,7 @@ DEFAULT_CONFIG = {
         "ico_path": "1024x1024.ico",
         "app_name": "eA3SC - v1.0.0",
         "information_url": "https://www.jnc.es",
-        "configuration_url": "http://localhost:19191/management/about",
+        "configuration_url": "http://localhost:19191/management/home",
         "option_1": "Information",
         "option_2": "Settings",
         "option_3": "Exit",
